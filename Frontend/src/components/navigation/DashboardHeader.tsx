@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { BellIcon, SearchIcon, MenuIcon } from 'lucide-react';
+import { BellIcon, SearchIcon, MenuIcon, TrophyIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +12,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useUser } from '@/lib/user-provider';
+import { useState, useEffect } from 'react';
 
 export function DashboardHeader() {
+  const { user, isLoading } = useUser();
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationCount] = useState(3);
+
+  // Animate notification badge when it appears
+  useEffect(() => {
+    if (showNotification) {
+      const badge = document.querySelector('.notification-badge');
+      if (badge && badge instanceof HTMLElement) {
+        badge.animate(
+          [
+            { transform: 'scale(0)' },
+            { transform: 'scale(1.2)' },
+            { transform: 'scale(1)' }
+          ],
+          {
+            duration: 400,
+            easing: 'ease-out'
+          }
+        );
+      }
+    }
+  }, [showNotification]);
+
+  // Show notification after a delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowNotification(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-6">
@@ -29,7 +65,7 @@ export function DashboardHeader() {
               <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
                 type="search"
-                placeholder="Search..."
+                placeholder="Search projects, languages, stats..."
                 className="w-full rounded-md border border-input bg-background pl-8 pr-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
@@ -37,10 +73,22 @@ export function DashboardHeader() {
         </div>
 
         <div className="flex items-center gap-4">
+          {!isLoading && user && (
+            <div className="hidden items-center gap-2 md:flex">
+              <Badge variant="outline" className="bg-primary/5 text-primary">
+                <TrophyIcon className="mr-1 h-3 w-3" /> {user.stats.currentStreak} day streak
+              </Badge>
+            </div>
+          )}
+
           <Button variant="ghost" size="icon" className="relative">
             <BellIcon className="h-5 w-5" />
             <span className="sr-only">Notifications</span>
-            <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-primary"></span>
+            {showNotification && (
+              <span className="notification-badge absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                {notificationCount}
+              </span>
+            )}
           </Button>
 
           <ThemeToggle />
@@ -49,16 +97,24 @@ export function DashboardHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/user.png" alt="User" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  {!isLoading && user && user.avatar && (
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                  )}
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {!isLoading && user ? user.name.charAt(0) : 'U'}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">User</p>
-                  <p className="text-xs leading-none text-muted-foreground">user@example.com</p>
+                  <p className="text-sm font-medium leading-none">
+                    {!isLoading && user ? user.name : 'Loading...'}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {!isLoading && user ? user.email : ''}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

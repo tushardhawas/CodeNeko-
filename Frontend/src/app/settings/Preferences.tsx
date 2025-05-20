@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,7 +36,7 @@ export default function Preferences() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Simulate saving preferences
     setTimeout(() => {
       setIsLoading(false);
@@ -125,7 +125,7 @@ export default function Preferences() {
                     max={12}
                     step={1}
                     value={[preferences.dailyGoalHours]}
-                    onValueChange={(value) => handleSliderChange('dailyGoalHours', value)}
+                    onValueChange={(value: number[]) => handleSliderChange('dailyGoalHours', value)}
                   />
                 </div>
                 <div className="flex items-center justify-between">

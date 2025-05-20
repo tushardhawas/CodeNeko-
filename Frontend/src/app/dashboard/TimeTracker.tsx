@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
-import { ClockIcon, PlayIcon, PauseIcon, StopCircle, FolderIcon, CodeIcon, PlusIcon } from 'lucide-react';
+import { PlayIcon, PauseIcon, StopCircle } from 'lucide-react';
 
 interface Project {
   id: string;

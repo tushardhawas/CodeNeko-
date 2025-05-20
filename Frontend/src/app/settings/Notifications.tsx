@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { BellIcon, EnvelopeIcon, DevicePhoneMobileIcon, ComputerDesktopIcon } from 'lucide-react';
+import { MailIcon, SmartphoneIcon, MonitorIcon } from 'lucide-react';
 
 export default function Notifications() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,14 +31,20 @@ export default function Notifications() {
     frequency: 'daily',
   });
 
-  const handleSwitchChange = (category: string, name: string) => {
-    setNotifications(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category as keyof typeof prev],
-        [name]: !prev[category as keyof typeof prev][name],
-      },
-    }));
+  const handleSwitchChange = (category: 'email' | 'push' | 'desktop', name: string) => {
+    setNotifications(prev => {
+      const categorySettings = prev[category];
+      if (typeof categorySettings === 'object' && categorySettings !== null) {
+        return {
+          ...prev,
+          [category]: {
+            ...categorySettings,
+            [name]: !categorySettings[name as keyof typeof categorySettings],
+          },
+        };
+      }
+      return prev;
+    });
   };
 
   const handleSelectChange = (value: string) => {
@@ -48,7 +54,7 @@ export default function Notifications() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Simulate saving notification settings
     setTimeout(() => {
       setIsLoading(false);
@@ -68,7 +74,7 @@ export default function Notifications() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <EnvelopeIcon className="h-5 w-5" />
+                <MailIcon className="h-5 w-5" />
                 <h3 className="text-lg font-medium">Email Notifications</h3>
               </div>
               <div className="space-y-4 rounded-md border p-4">
@@ -131,7 +137,7 @@ export default function Notifications() {
 
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <DevicePhoneMobileIcon className="h-5 w-5" />
+                <SmartphoneIcon className="h-5 w-5" />
                 <h3 className="text-lg font-medium">Push Notifications</h3>
               </div>
               <div className="space-y-4 rounded-md border p-4">
@@ -194,7 +200,7 @@ export default function Notifications() {
 
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <ComputerDesktopIcon className="h-5 w-5" />
+                <MonitorIcon className="h-5 w-5" />
                 <h3 className="text-lg font-medium">Desktop Notifications</h3>
               </div>
               <div className="space-y-4 rounded-md border p-4">

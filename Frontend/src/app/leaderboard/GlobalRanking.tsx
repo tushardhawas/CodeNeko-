@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { TrophyIcon, SearchIcon, ArrowUpIcon, ArrowDownIcon, MinusIcon } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { SearchIcon, ArrowUpIcon, ArrowDownIcon, MinusIcon } from 'lucide-react';
 
 interface RankingUser {
   id: string;
@@ -110,10 +110,10 @@ const mockUsers: RankingUser[] = [
 ];
 
 export default function GlobalRanking() {
-  const [users, setUsers] = useState<RankingUser[]>(mockUsers);
+  const [users] = useState<RankingUser[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );

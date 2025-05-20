@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FolderIcon, PlusIcon, ClockIcon, CodeIcon, GitBranchIcon } from 'lucide-react';
+import { FolderIcon, PlusIcon, ClockIcon, GitBranchIcon } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -42,10 +42,10 @@ const mockProjects: Project[] = [
 ];
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [projects] = useState<Project[]>(mockProjects);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredProjects = projects.filter(project => 
+  const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     project.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -78,7 +78,7 @@ export default function Projects() {
           <TabsTrigger value="active">Active</TabsTrigger>
           <TabsTrigger value="archived">Archived</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="all" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredProjects.map((project) => (
@@ -120,11 +120,11 @@ export default function Projects() {
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="active" className="space-y-4">
           <p className="text-center text-muted-foreground">Active projects placeholder</p>
         </TabsContent>
-        
+
         <TabsContent value="archived" className="space-y-4">
           <p className="text-center text-muted-foreground">Archived projects placeholder</p>
         </TabsContent>

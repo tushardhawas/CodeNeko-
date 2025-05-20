@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TrophyIcon, SearchIcon, ArrowUpIcon, ArrowDownIcon, MinusIcon, UserPlusIcon } from 'lucide-react';
 
 interface FriendUser {
@@ -71,10 +71,10 @@ const mockFriends: FriendUser[] = [
 ];
 
 export default function FriendsRanking() {
-  const [friends, setFriends] = useState<FriendUser[]>(mockFriends);
+  const [friends] = useState<FriendUser[]>(mockFriends);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredFriends = friends.filter(friend => 
+  const filteredFriends = friends.filter(friend =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     friend.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
