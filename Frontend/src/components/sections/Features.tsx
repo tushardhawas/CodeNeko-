@@ -109,7 +109,7 @@ export function Features() {
 
       {/* Code symbols */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[3%] top-[30%]">
+        <div className="absolute left-[3%] top-[20%]">
           <motion.div
             className="code-symbol float-rotate"
             animate={{
@@ -125,7 +125,7 @@ export function Features() {
             {"{"}
           </motion.div>
         </div>
-        <div className="absolute right-[5%] top-[60%]">
+        <div className="absolute right-[5%] top-[20%]">
           <motion.div
             className="code-symbol float"
             animate={{

@@ -17,10 +17,10 @@ export function DemoPreview() {
 
       {/* Code symbols */}
       <div className="code-symbols pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[8%] bottom-[20%]">
+        <div className="absolute left-[3%] top-[20%]">
           <div className="code-symbol float" style={{ animationDelay: "0.7s" }}>{"<>"}</div>
         </div>
-        <div className="absolute right-[8%] top-[20%]">
+        <div className="absolute right-[3%] top-[20%]">
           <div className="code-symbol float-rotate" style={{ animationDelay: "1.8s" }}>{"</>"}</div>
         </div>
       </div>
