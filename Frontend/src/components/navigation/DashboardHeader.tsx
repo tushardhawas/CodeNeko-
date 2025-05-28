@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BellIcon, SearchIcon, TrophyIcon } from 'lucide-react';
+import { BellIcon, SearchIcon, TrophyIcon, MenuIcon, BarChart3Icon, ClockIcon, FolderIcon, SettingsIcon, CatIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -90,6 +90,57 @@ export function DashboardHeader() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Navigation Menu Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MenuIcon className="h-5 w-5" />
+                <span className="sr-only">Navigation Menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/app/stats" className="flex items-center gap-2 w-full">
+                  <BarChart3Icon className="h-4 w-4" />
+                  Stats
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/app/tracker" className="flex items-center gap-2 w-full">
+                  <ClockIcon className="h-4 w-4" />
+                  Tracker
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/app/projects" className="flex items-center gap-2 w-full">
+                  <FolderIcon className="h-4 w-4" />
+                  Projects
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/app/leaderboard" className="flex items-center gap-2 w-full">
+                  <TrophyIcon className="h-4 w-4" />
+                  Leaderboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/app/cat" className="flex items-center gap-2 w-full">
+                  <CatIcon className="h-4 w-4" />
+                  Cat Companion
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/app/settings" className="flex items-center gap-2 w-full">
+                  <SettingsIcon className="h-4 w-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button variant="ghost" size="icon" className="relative">
             <BellIcon className="h-5 w-5" />
             <span className="sr-only">Notifications</span>
