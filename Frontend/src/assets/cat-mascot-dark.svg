@@ -8,7 +8,7 @@
       animation: blink 4s infinite;
       transform-origin: center;
     }
-    
+
     @keyframes tail-wag {
       0%, 100% { transform: rotate(0deg); }
       50% { transform: rotate(10deg); }
@@ -29,47 +29,54 @@
       animation: whisker-twitch 5s infinite reverse;
     }
   </style>
-  
-  <!-- Cat Face -->
-  <circle cx="100" cy="100" r="70" fill="#4C1D95" />
-  
-  <!-- Cat Ears -->
-  <path d="M50 50L70 80L30 80L50 50Z" fill="#2E1065" />
-  <path d="M150 50L170 80L130 80L150 50Z" fill="#2E1065" />
-  
+
+  <!-- Cat Face - Natural Siamese Cat Theme -->
+  <circle cx="100" cy="100" r="70" fill="#E8D7C1" /> <!-- Cream body color -->
+
+  <!-- Siamese Darker Points -->
+  <path d="M50 50L70 80L30 80L50 50Z" fill="#6E4C41" /> <!-- Dark brown ear -->
+  <path d="M150 50L170 80L130 80L150 50Z" fill="#6E4C41" /> <!-- Dark brown ear -->
+
+  <!-- Face Mask -->
+  <path d="M70 70C80 90 120 90 130 70C130 90 120 110 100 110C80 110 70 90 70 70Z" fill="#6E4C41" /> <!-- Dark brown mask -->
+
   <!-- Cat Eyes -->
-  <ellipse cx="70" cy="90" rx="10" ry="15" fill="#E5E7EB" />
-  <ellipse cx="130" cy="90" rx="10" ry="15" fill="#E5E7EB" />
-  
-  <!-- Cat Pupils (with blinking animation) -->
+  <ellipse cx="70" cy="90" rx="10" ry="15" fill="#F1F5F9" />
+  <ellipse cx="130" cy="90" rx="10" ry="15" fill="#F1F5F9" />
+
+  <!-- Cat Pupils (with blinking animation) - Blue Eyes -->
   <g class="eye-blink">
-    <ellipse cx="70" cy="90" rx="5" ry="10" fill="black" />
-    <ellipse cx="130" cy="90" rx="5" ry="10" fill="black" />
+    <ellipse cx="70" cy="90" rx="5" ry="10" fill="#3B82F6" />
+    <ellipse cx="130" cy="90" rx="5" ry="10" fill="#3B82F6" />
   </g>
-  
+
   <!-- Cat Nose -->
-  <path d="M100 110L95 120H105L100 110Z" fill="#EC4899" />
-  
+  <path d="M100 110L95 120H105L100 110Z" fill="#F08080" />
+
   <!-- Cat Mouth -->
-  <path d="M90 125Q100 135 110 125" stroke="white" stroke-width="2" fill="none" />
-  
+  <path d="M90 125Q100 135 110 125" stroke="#6E4C41" stroke-width="2" fill="none" />
+
   <!-- Cat Whiskers with animation -->
   <g class="whiskers-left">
     <line x1="40" y1="115" x2="80" y2="115" stroke="white" stroke-width="1" />
     <line x1="40" y1="125" x2="80" y2="125" stroke="white" stroke-width="1" />
     <line x1="40" y1="135" x2="80" y2="135" stroke="white" stroke-width="1" />
   </g>
-  
+
   <g class="whiskers-right">
     <line x1="120" y1="115" x2="160" y2="115" stroke="white" stroke-width="1" />
     <line x1="120" y1="125" x2="160" y2="125" stroke="white" stroke-width="1" />
     <line x1="120" y1="135" x2="160" y2="135" stroke="white" stroke-width="1" />
   </g>
-  
-  <!-- Cat Tail with wagging animation -->
-  <path d="M70 140C60 160 80 170 100 165" stroke="#2E1065" stroke-width="8" stroke-linecap="round" class="tail-wag" />
-  
+
+  <!-- Dark Paws -->
+  <circle cx="75" cy="160" r="8" fill="#6E4C41" />
+  <circle cx="125" cy="160" r="8" fill="#6E4C41" />
+
+  <!-- Cat Tail with wagging animation - Dark Point -->
+  <path d="M70 140C60 160 80 170 100 165" stroke="#6E4C41" stroke-width="8" stroke-linecap="round" class="tail-wag" />
+
   <!-- Code Symbol -->
-  <path d="M85 150L75 160L85 170" stroke="#E5E7EB" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M115 150L125 160L115 170" stroke="#E5E7EB" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M85 150L75 160L85 170" stroke="#3B82F6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M115 150L125 160L115 170" stroke="#3B82F6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BellIcon, SearchIcon, MenuIcon, TrophyIcon } from 'lucide-react';
+import { BellIcon, SearchIcon, TrophyIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,11 +14,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/lib/user-provider';
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { useTheme } from '@/lib/theme-provider';
+import catMascotLight from '@/assets/cat-mascot-enhanced.svg';
+import catMascotDark from '@/assets/cat-mascot-dark.svg';
 
 export function DashboardHeader() {
   const { user, isLoading } = useUser();
+  const { theme } = useTheme();
   const [showNotification, setShowNotification] = useState(false);
   const [notificationCount] = useState(3);
+
+  const catMascot = theme === 'dark' ? catMascotDark : catMascotLight;
 
   // Animate notification badge when it appears
   useEffect(() => {
@@ -49,30 +56,17 @@ export function DashboardHeader() {
     return () => clearTimeout(timer);
   }, []);
 
+
+
   return (
-    <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div className="flex items-center gap-2 md:hidden">
-          <Button variant="ghost" size="icon">
-            <MenuIcon className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </div>
+    <header className="sticky top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <Link to="/app" className="flex items-center gap-2">
+            <img src={catMascot} alt="CodeNeko" className="h-8 w-8" />
+            <span className="text-lg font-bold hidden md:inline-block">CodeNeko</span>
+          </Link>
 
-        <div className="flex flex-1 items-center gap-4 md:gap-8">
-          <form className="hidden md:flex-1 md:max-w-sm lg:max-w-md">
-            <div className="relative">
-              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                type="search"
-                placeholder="Search projects, languages, stats..."
-                className="w-full rounded-md border border-input bg-background pl-8 pr-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </form>
-        </div>
-
-        <div className="flex items-center gap-4">
           {!isLoading && user && (
             <div className="hidden items-center gap-2 md:flex">
               <Badge variant="outline" className="bg-primary/5 text-primary">
@@ -80,7 +74,22 @@ export function DashboardHeader() {
               </Badge>
             </div>
           )}
+        </div>
 
+        <div className="flex-1 max-w-md mx-auto px-4">
+          <form className="w-full">
+            <div className="relative">
+              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input
+                type="search"
+                placeholder="Search projects, languages, stats..."
+                className="w-full rounded-md border border-input bg-background pl-8 pr-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+            </div>
+          </form>
+        </div>
+
+        <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="relative">
             <BellIcon className="h-5 w-5" />
             <span className="sr-only">Notifications</span>

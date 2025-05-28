@@ -24,8 +24,8 @@ export function LandingHeader() {
           <Link to="/#features" className="text-sm text-muted-foreground transition-colors hover:text-primary">
             Features
           </Link>
-          <Link to="/#pricing" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            Pricing
+          <Link to="/app/leaderboard" className="text-sm text-muted-foreground transition-colors hover:text-primary">
+            Leaderboard
           </Link>
           <Link to="/#about" className="text-sm text-muted-foreground transition-colors hover:text-primary">
             About
