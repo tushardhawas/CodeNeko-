@@ -9,13 +9,9 @@ import { animate, stagger } from 'motion';
 import {
   ClockIcon,
   BarChart3Icon,
-  BrainIcon,
   TrophyIcon,
-  CodeIcon,
-  HeartIcon,
   GitBranchIcon,
   CalendarIcon,
-  ActivityIcon,
   CodepenIcon
 } from 'lucide-react';
 import catMascotLight from '@/assets/cat-mascot-enhanced.svg';
@@ -60,7 +56,7 @@ export default function LandingPage() {
         animate(
           Array.from(buttons),
           { opacity: [0, 1], y: [20, 0] },
-          { duration: 0.8, delay: stagger(0.1, { start: 0.6 }) }
+          { duration: 0.8, delay: stagger(0.1) }
         );
       }
 
@@ -76,7 +72,7 @@ export default function LandingPage() {
         animate(
           Array.from(users),
           { opacity: [0, 1], scale: [0.8, 1] },
-          { duration: 0.5, delay: stagger(0.1, { start: 1 }) }
+          { duration: 0.5, delay: stagger(0.1) }
         );
       }
     }

@@ -1,40 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   ClockIcon,
   TrophyIcon,
-  CalendarIcon,
-  TrendingUpIcon,
-  MenuIcon,
   BarChart3Icon,
   FolderIcon,
-  SettingsIcon,
   CatIcon,
-  CodeIcon,
   StarIcon,
   SunriseIcon,
-  MoonIcon,
   UsersIcon,
   ThumbsUpIcon,
   ActivityIcon,
-  ZapIcon
+  ZapIcon,
+  SettingsIcon,
+  MoonIcon,
+  CodeIcon,
+  TrendingUpIcon
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useUser } from '@/lib/user-provider';
 import { animate, stagger } from 'motion';
-import { Link } from 'react-router-dom';
 import { StreakCalendar } from '@/components/dashboard/StreakCalendar';
 
 // Helper function to get greeting based on time of day
@@ -44,8 +32,6 @@ const getGreeting = () => {
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
 };
-
-// Helper function removed as cat mascot is now in the header
 
 export default function Dashboard() {
   const { user, isLoading } = useUser();
@@ -97,8 +83,6 @@ export default function Dashboard() {
       );
     }
   }, [isLoading, user]);
-
-  // Removed cat click handler as it's now in the header
 
   if (isLoading) {
     return <div className="flex h-[60vh] items-center justify-center">Loading your personalized dashboard...</div>;
@@ -215,7 +199,7 @@ export default function Dashboard() {
                 <Card className="col-span-1 overflow-hidden transition-all duration-200 hover:shadow-sm">
                   <CardHeader className="py-2">
                     <CardTitle className="flex items-center text-sm">
-                      <CodeIcon className="mr-2 h-4 w-4 text-primary" />
+                      <StarIcon className="mr-2 h-4 w-4 text-primary" />
                       Language Distribution
                     </CardTitle>
                   </CardHeader>
@@ -224,7 +208,7 @@ export default function Dashboard() {
                       {user.languageDistribution.slice(0, 3).map((lang, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                            <CodeIcon className="h-3 w-3 text-primary" />
+                            <CatIcon className="h-3 w-3 text-primary" />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
@@ -250,7 +234,7 @@ export default function Dashboard() {
                 <Card className="overflow-hidden transition-all duration-200 hover:shadow-sm">
                   <CardHeader className="py-2">
                     <CardTitle className="flex items-center text-sm">
-                      <TrendingUpIcon className="mr-2 h-4 w-4 text-primary" />
+                      <ZapIcon className="mr-2 h-4 w-4 text-primary" />
                       Progress Insights
                     </CardTitle>
                   </CardHeader>
@@ -279,7 +263,7 @@ export default function Dashboard() {
                 <Card className="overflow-hidden transition-all duration-200 hover:shadow-sm">
                   <CardHeader className="py-2">
                     <CardTitle className="flex items-center text-sm">
-                      <ZapIcon className="mr-2 h-4 w-4 text-primary" />
+                      <SettingsIcon className="mr-2 h-4 w-4 text-primary" />
                       Quick Actions
                     </CardTitle>
                   </CardHeader>

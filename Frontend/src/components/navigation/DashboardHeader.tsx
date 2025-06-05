@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/lib/user-provider';
 import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme-provider';
 import catMascotLight from '@/assets/cat-mascot-enhanced.svg';
 import catMascotDark from '@/assets/cat-mascot-dark.svg';

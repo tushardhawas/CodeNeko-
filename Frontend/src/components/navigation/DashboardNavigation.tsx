@@ -71,11 +71,10 @@ const navigationItems: NavigationItem[] = [
 ];
 
 interface DashboardNavigationProps {
-  activeOption: number;
   setActiveOption: (index: number) => void;
 }
 
-export function DashboardNavigation({ activeOption, setActiveOption }: DashboardNavigationProps) {
+export function DashboardNavigation({ setActiveOption }: DashboardNavigationProps) {
   const location = useLocation();
   const [showFAB, setShowFAB] = useState(false);
   

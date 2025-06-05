@@ -6,21 +6,13 @@ import {
   BarChart3Icon,
   ClockIcon,
   FolderIcon,
-  HomeIcon,
   SettingsIcon,
   TrophyIcon,
   CatIcon,
-  PlusIcon,
-  XIcon,
-  SearchIcon,
-  BellIcon,
-  UserIcon,
-  CodeIcon,
-  LayoutDashboardIcon
+  LayoutDashboardIcon,
+  XIcon
 } from 'lucide-react';
 import { useTheme } from '@/lib/theme-provider';
-import { useUser } from '@/lib/user-provider';
-import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import catMascotLight from '@/assets/cat-mascot-enhanced.svg';
 import catMascotDark from '@/assets/cat-mascot-dark.svg';
@@ -88,7 +80,6 @@ const navigationItems: NavigationItem[] = [
 export function CodeNekoNavRing() {
   const location = useLocation();
   const { theme } = useTheme();
-  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -167,7 +158,7 @@ export function CodeNekoNavRing() {
       dragMomentum={false}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onDrag={(e, info) => {
+      onDrag={(_, info) => {
         setPosition({
           x: lastPosition.x + info.offset.x,
           y: lastPosition.y + info.offset.y
