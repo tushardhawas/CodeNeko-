@@ -1,5 +1,4 @@
 import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { gsap } from 'gsap';
@@ -53,12 +52,6 @@ const generateData = (): Day[] => {
   }
   return days;
 };
-
-// Gray for no activity, green for demo activity
-const COLORS = [
-  'bg-gray-200 dark:bg-gray-800',
-  'bg-green-500 dark:bg-green-400',
-];
 
 // ParticleCard component for MagicBento effects
 const ParticleCard: React.FC<{

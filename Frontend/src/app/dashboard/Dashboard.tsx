@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 import {
   ClockIcon,
@@ -11,16 +7,9 @@ import {
   BarChart3Icon,
   FolderIcon,
   CatIcon,
-  StarIcon,
-  SunriseIcon,
-  UsersIcon,
-  ThumbsUpIcon,
   ActivityIcon,
   ZapIcon,
-  SettingsIcon,
-  MoonIcon,
-  CodeIcon,
-  TrendingUpIcon
+  CodeIcon
 } from 'lucide-react';
 import { useUser } from '@/lib/user-provider';
 import { animate, stagger } from 'motion';
@@ -506,7 +495,6 @@ const GlobalSpotlight: React.FC<{
 
 export default function Dashboard() {
   const { user, isLoading } = useUser();
-  const [activeTab, setActiveTab] = useState('overview');
   const statsRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const socialRef = useRef<HTMLDivElement>(null);
