@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import BlurText from '@/components/Custom/BlurText';
+import Orb from '@/components/Custom/Orb';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useTheme } from '@/lib/theme-provider';
 import { animate, stagger } from 'motion';
+import ShinyText from '@/components/Custom/ShinyText';
 import {
   ClockIcon,
   BarChart3Icon,
@@ -157,10 +160,23 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col">
+      
       {/* Hero Section */}
       <section ref={heroRef} className="relative overflow-hidden py-20 md:py-32">
+        {/* Orb Background */}
+        <div className="absolute inset-0  flex items-center justify-center">
+          <div className="w-[800px] h-[800px] opacity-30">
+            <Orb
+              hoverIntensity={0.5}
+              rotateOnHover={true}
+              hue={0}
+              forceHoverState={false}
+            />
+          </div>
+        </div>
+
         {/* Animated gradient background */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 -z-20 overflow-hidden">
           <div className="absolute -top-[40%] left-[20%] h-[500px] w-[500px] rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 blur-3xl animate-pulse-slow" style={{ animationDuration: '8s' }}></div>
           <div className="absolute -bottom-[30%] right-[20%] h-[400px] w-[400px] rounded-full bg-gradient-to-r from-blue-500/20 to-primary/20 blur-3xl animate-pulse-slow" style={{ animationDuration: '10s' }}></div>
         </div>
@@ -174,23 +190,40 @@ export default function LandingPage() {
               className="hero-mascot mb-8 h-32 w-32"
             />
 
-            <h1 className="hero-title mb-4 text-4xl font-bold md:text-6xl">
-              Code Better.
-            </h1>
+            {/* BlurText for hero title and subtitle */}
+            <BlurText
+              text="Code Better."
+              className="hero-title mb-4 text-4xl font-bold md:text-6xl"
+              animateBy="words"
+              direction="top"
+              delay={100}
+            />
 
-            <p className="hero-subtitle mb-8 max-w-2xl text-xl text-muted-foreground md:text-2xl">
-              Track your coding habits and helps you become a better developer.
-            </p>
+            <BlurText
+              text="Track your coding habits and helps you become a better developer."
+              className="hero-subtitle mb-8 max-w-3xl text-xl text-muted-foreground md:text-2xl"
+              animateBy="words"
+              direction="top"
+              delay={100}
+            />
 
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <Link to="/app/leaderboard" className="hero-button">
                 <Button size="lg" className="gap-2">
-                  Leaderboard
+                  <ShinyText 
+                text="Leaderboard" 
+                className="text-sm"
+                speed={3}
+              />
                 </Button>
               </Link>
               <Link to="/register" className="hero-button">
                 <Button size="lg" variant="outline" className="gap-2">
-                  VS Code Extension
+                  <ShinyText 
+                text="VS Code Extension" 
+                className="text-sm"
+                speed={3}
+              />
                 </Button>
               </Link>
             </div>
