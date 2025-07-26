@@ -17,20 +17,6 @@ export function LandingHeader() {
           <span className="text-xl font-bold">CodeNeko</span>
         </Link>
 
-        <nav className="hidden space-x-6 md:flex">
-          <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            Home
-          </Link>
-          <Link to="/#features" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            Features
-          </Link>
-          <Link to="/app/leaderboard" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            Leaderboard
-          </Link>
-          <Link to="/#about" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            About
-          </Link>
-        </nav>
 
         <div className="flex items-center gap-4">
           <ThemeToggle />

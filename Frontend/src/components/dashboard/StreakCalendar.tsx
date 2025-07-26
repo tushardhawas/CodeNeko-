@@ -7,199 +7,106 @@ interface StreakCalendarProps {
   className?: string;
 }
 
-interface DayData {
+interface Day {
   date: Date;
-  intensity: number; // 0-4 scale (0 = no activity, 4 = high activity)
-  hours?: number;
+  intensity: number; // 0 = no activity, 1 = activity
 }
 
-// Generate mock data for the last 12 months
-const generateCalendarData = (): DayData[] => {
-  const data: DayData[] = [];
+// Generate last year data with random demo activity
+const generateData = (): Day[] => {
   const today = new Date();
-  const startDate = new Date(today);
-  startDate.setMonth(startDate.getMonth() - 12);
-  
-  // Start from the beginning of the week containing startDate
-  const firstDay = new Date(startDate);
-  firstDay.setDate(firstDay.getDate() - firstDay.getDay());
-  
-  for (let i = 0; i < 371; i++) { // ~53 weeks * 7 days
-    const date = new Date(firstDay);
-    date.setDate(firstDay.getDate() + i);
-    
-    // Generate realistic coding activity data
-    const dayOfWeek = date.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isToday = date.toDateString() === today.toDateString();
-    const isPast = date <= today;
-    
-    let intensity = 0;
-    let hours = 0;
-    
-    if (isPast && !isToday) {
-      // Higher activity on weekdays, some weekend activity
-      const baseChance = isWeekend ? 0.3 : 0.8;
-      const random = Math.random();
-      
-      if (random < baseChance) {
-        if (isWeekend) {
-          intensity = Math.floor(Math.random() * 3) + 1; // 1-3
-          hours = intensity * 1.5;
-        } else {
-          intensity = Math.floor(Math.random() * 4) + 1; // 1-4
-          hours = intensity * 2;
-        }
-      }
-    } else if (isToday) {
-      // Today's activity (current session)
-      intensity = 3;
-      hours = 4.5;
-    }
-    
-    data.push({ date, intensity, hours });
+  const start = new Date(today);
+  start.setFullYear(start.getFullYear() - 1);
+  const days: Day[] = [];
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    const hasWorked = Math.random() < 0.3; // ~30% days with activity
+    days.push({ date: new Date(d), intensity: hasWorked ? 1 : 0 });
   }
-  
-  return data;
+  return days;
 };
 
-const getIntensityColor = (intensity: number): string => {
-  switch (intensity) {
-    case 0: return 'bg-muted/30 dark:bg-muted/20';
-    case 1: return 'bg-primary/20 dark:bg-primary/30';
-    case 2: return 'bg-primary/40 dark:bg-primary/50';
-    case 3: return 'bg-primary/60 dark:bg-primary/70';
-    case 4: return 'bg-primary dark:bg-primary';
-    default: return 'bg-muted/30 dark:bg-muted/20';
-  }
-};
-
-const getTooltipText = (day: DayData): string => {
-  const dateStr = day.date.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-  
-  if (day.intensity === 0) {
-    return `${dateStr}: No coding activity`;
-  }
-  
-  return `${dateStr}: ${day.hours?.toFixed(1)}h coding`;
-};
-
-const getMonthLabels = (data: DayData[]): { month: string; x: number }[] => {
-  const months: { month: string; x: number }[] = [];
-  let currentMonth = -1;
-  
-  data.forEach((day, index) => {
-    const month = day.date.getMonth();
-    const weekIndex = Math.floor(index / 7);
-    
-    if (month !== currentMonth && day.date.getDate() <= 7) {
-      currentMonth = month;
-      months.push({
-        month: day.date.toLocaleDateString('en-US', { month: 'short' }),
-        x: weekIndex * 12 + 2 // 12px per week + 2px offset
-      });
-    }
-  });
-  
-  return months;
-};
+// Gray for no activity, green for demo activity
+const COLORS = [
+  'bg-gray-200 dark:bg-gray-800',
+  'bg-green-500 dark:bg-green-400',
+];
 
 export function StreakCalendar({ className }: StreakCalendarProps) {
-  const calendarData = useMemo(() => generateCalendarData(), []);
-  const monthLabels = useMemo(() => getMonthLabels(calendarData), [calendarData]);
-  
-  // Calculate streak stats
-  const totalDays = calendarData.filter(day => day.intensity > 0).length;
-  const currentStreak = useMemo(() => {
-    let streak = 0;
-    const today = new Date();
-    
-    for (let i = calendarData.length - 1; i >= 0; i--) {
-      const day = calendarData[i];
-      if (day.date > today) continue;
-      
-      if (day.intensity > 0) {
-        streak++;
-      } else {
-        break;
+  const data = useMemo(generateData, []);
+
+  // group into weeks
+  const weeks: Day[][] = [];
+  data.forEach((day) => {
+    const weekIdx = Math.floor((day.date.getTime() - data[0].date.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    if (!weeks[weekIdx]) weeks[weekIdx] = [];
+    weeks[weekIdx].push(day);
+  });
+
+  // compute month label positions at first-of-month
+  const monthLabels: { label: string; col: number }[] = [];
+  let lastMonth = -1;
+  weeks.forEach((week, i) => {
+    const firstOfMonth = week.find((d) => d.date.getDate() === 1);
+    if (firstOfMonth) {
+      const m = firstOfMonth.date.getMonth();
+      if (m !== lastMonth) {
+        lastMonth = m;
+        monthLabels.push({ label: firstOfMonth.date.toLocaleString('en-US', { month: 'short' }), col: i + 1 });
       }
     }
-    
-    return streak;
-  }, [calendarData]);
-  
-  // Group data by weeks
-  const weeks: DayData[][] = [];
-  for (let i = 0; i < calendarData.length; i += 7) {
-    weeks.push(calendarData.slice(i, i + 7));
-  }
-  
+  });
+
+  const total = data.filter((d) => d.intensity > 0).length;
+  const streak = useMemo(() => {
+    let s = 0;
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (data[i].intensity > 0) s++;
+      else break;
+    }
+    return s;
+  }, [data]);
+
   return (
-    <Card className={cn("overflow-hidden transition-all duration-200 hover:shadow-sm", className)}>
-      <CardHeader className="py-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center text-sm">
-            <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-            Coding Activity
+    <Card className={cn('p-4', className)}>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-sm flex items-center">
+            <CalendarIcon className="mr-1 h-4 w-4 text-green-500" />
+            Code Activity
           </CardTitle>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>{totalDays} days this year</span>
-            <span>{currentStreak} day streak</span>
+          <div className="text-xs text-gray-500">
+            {total} days · {streak} streak
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-3 py-2">
-        <div className="relative">
-          {/* Month labels */}
-          <div className="relative h-4 mb-1">
-            {monthLabels.map((label, index) => (
-              <span
-                key={index}
-                className="absolute text-xs text-muted-foreground"
-                style={{ left: `${label.x}px` }}
+      <CardContent>
+        <div className="overflow-x-auto">
+          {/* grid: first row month labels, next 7 rows for weekdays Sunday->Saturday */}
+          <div className="grid grid-rows-[auto_7] grid-flow-col gap-1">
+            {monthLabels.map(({ label, col }, idx) => (
+              <div
+                key={idx}
+                className="text-[10px] text-gray-500"
+                style={{ gridColumnStart: col, gridRowStart: 1 }}
               >
-                {label.month}
-              </span>
-            ))}
-          </div>
-          
-          {/* Calendar grid */}
-          <div className="flex gap-1 overflow-x-auto pb-2">
-            {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="flex flex-col gap-1">
-                {week.map((day, dayIndex) => (
-                  <div
-                    key={`${weekIndex}-${dayIndex}`}
-                    className={cn(
-                      "w-2.5 h-2.5 rounded-sm cursor-pointer transition-all duration-200 hover:ring-1 hover:ring-primary/50",
-                      getIntensityColor(day.intensity)
-                    )}
-                    title={getTooltipText(day)}
-                  />
-                ))}
+                {label}
               </div>
             ))}
-          </div>
-          
-          {/* Legend */}
-          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-            <span>Less</span>
-            <div className="flex items-center gap-1">
-              {[0, 1, 2, 3, 4].map((intensity) => (
+
+            {weeks.map((week, w) =>
+              week.map((day, d) => (
                 <div
-                  key={intensity}
-                  className={cn(
-                    "w-2.5 h-2.5 rounded-sm",
-                    getIntensityColor(intensity)
-                  )}
+                  key={`${w}-${d}`}
+                  className={cn('w-2 h-2 rounded-sm', COLORS[day.intensity])}
+                  style={{ gridColumnStart: w + 1, gridRowStart: (day.date.getDay() || 0) + 2 }}
+                  title={
+                    day.intensity
+                      ? `${day.date.toLocaleDateString('en-US')}: 1 session`
+                      : `${day.date.toLocaleDateString('en-US')}: No activity`
+                  }
                 />
-              ))}
-            </div>
-            <span>More</span>
+              ))
+            )}
           </div>
         </div>
       </CardContent>

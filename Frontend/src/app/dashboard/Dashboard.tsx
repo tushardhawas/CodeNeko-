@@ -24,6 +24,7 @@ import {
 import { useUser } from '@/lib/user-provider';
 import { animate, stagger } from 'motion';
 import { StreakCalendar } from '@/components/dashboard/StreakCalendar';
+import { useNavigate } from 'react-router-dom';
 
 // Helper function to get greeting based on time of day
 const getGreeting = () => {
@@ -39,6 +40,7 @@ export default function Dashboard() {
   const statsRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const socialRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Animation effect when component mounts
   useEffect(() => {
@@ -269,16 +271,16 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent className="px-3 py-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm" className="h-8 text-xs">
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate('/app/tracker')}>
                         Start Timer
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 text-xs">
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate('/app/projects')}>
                         New Project
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 text-xs">
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate('/app/stats')}>
                         View Stats
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 text-xs">
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate('/app/settings')}>
                         Settings
                       </Button>
                     </div>

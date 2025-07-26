@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { BellIcon, SearchIcon, TrophyIcon, MenuIcon, BarChart3Icon, ClockIcon, FolderIcon, SettingsIcon, CatIcon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BellIcon, SearchIcon, TrophyIcon, MenuIcon, BarChart3Icon, ClockIcon, FolderIcon, SettingsIcon, CatIcon, MailIcon, SmartphoneIcon, MonitorIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,12 +17,20 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme-provider';
 import catMascotLight from '@/assets/cat-mascot-enhanced.svg';
 import catMascotDark from '@/assets/cat-mascot-dark.svg';
+import { cn } from '@/lib/utils';
+import { NotificationPopup } from './NotificationPopup';
+import { formatISO } from 'date-fns';
 
 export function DashboardHeader() {
   const { user, isLoading } = useUser();
   const { theme } = useTheme();
   const [showNotification, setShowNotification] = useState(false);
-  const [notificationCount] = useState(3);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: 'You earned a new achievement!', time: formatISO(new Date(Date.now() - 2 * 60 * 1000)), seen: false },
+    { id: 2, message: 'Your streak is at risk. Code today to keep it!', time: formatISO(new Date(Date.now() - 60 * 60 * 1000)), seen: false },
+    { id: 3, message: 'Weekly report is available.', time: formatISO(new Date(Date.now() - 24 * 60 * 60 * 1000)), seen: true },
+  ]);
+  const navigate = useNavigate();
 
   const catMascot = theme === 'dark' ? catMascotDark : catMascotLight;
 
@@ -55,7 +63,23 @@ export function DashboardHeader() {
     return () => clearTimeout(timer);
   }, []);
 
+  const markAsRead = (id: number) => {
+    setNotifications((prev) => prev.map(n => n.id === id ? { ...n, seen: true } : n));
+  };
 
+  const onMarkAllRead = () => {
+    setNotifications((prev) => prev.map(n => ({ ...n, seen: true })));
+  };
+  const onViewAll = () => {
+    navigate('/app/settings/notifications');
+  };
+
+  // If you have an auth provider, call its logout method here
+  // Example: auth.logout();
+  // For now, just redirect to login
+  const handleLogout = () => {
+    navigate('/login');
+  };
 
   return (
     <header className="sticky top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -140,15 +164,20 @@ export function DashboardHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="ghost" size="icon" className="relative">
-            <BellIcon className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-            {showNotification && (
-              <span className="notification-badge absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                {notificationCount}
-              </span>
-            )}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <BellIcon className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+                {showNotification && notifications.filter(n => !n.seen).length > 0 && (
+                  <span className="notification-badge absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                    {notifications.filter(n => !n.seen).length}
+                  </span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <NotificationPopup notifications={notifications} onMarkAllRead={onMarkAllRead} onViewAll={onViewAll} />
+          </DropdownMenu>
 
           <ThemeToggle />
 
@@ -184,7 +213,7 @@ export function DashboardHeader() {
                 <Link to="/app/settings/preferences" className="w-full">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
