@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { BellIcon, SearchIcon, TrophyIcon, MenuIcon, BarChart3Icon, ClockIcon, FolderIcon, SettingsIcon, CatIcon, MailIcon, SmartphoneIcon, MonitorIcon, CheckIcon, XIcon } from 'lucide-react';
+import { BellIcon, SearchIcon, TrophyIcon, MenuIcon, BarChart3Icon, ClockIcon, FolderIcon, SettingsIcon, CatIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,7 +17,6 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme-provider';
 import catMascotLight from '@/assets/cat-mascot-enhanced.svg';
 import catMascotDark from '@/assets/cat-mascot-dark.svg';
-import { cn } from '@/lib/utils';
 import { NotificationPopup } from './NotificationPopup';
 import { formatISO } from 'date-fns';
 
@@ -62,10 +61,6 @@ export function DashboardHeader() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const markAsRead = (id: number) => {
-    setNotifications((prev) => prev.map(n => n.id === id ? { ...n, seen: true } : n));
-  };
 
   const onMarkAllRead = () => {
     setNotifications((prev) => prev.map(n => ({ ...n, seen: true })));
