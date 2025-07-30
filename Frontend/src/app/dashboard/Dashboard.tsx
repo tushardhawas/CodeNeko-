@@ -12,6 +12,7 @@ import {
   CodeIcon
 } from 'lucide-react';
 import { useUser } from '@/lib/user-provider';
+import { useTheme } from '@/lib/theme-provider';
 import { animate, stagger } from 'motion';
 import { StreakCalendar } from '@/components/dashboard/StreakCalendar';
 import { useNavigate } from 'react-router-dom';
@@ -21,14 +22,23 @@ import ShinyText from '@/components/Custom/ShinyText';
 // MagicBento constants
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
-const DEFAULT_GLOW_COLOR = "132, 0, 255";
 const MOBILE_BREAKPOINT = 768;
+
+// Theme-aware glow colors
+const getThemeColors = (theme: 'light' | 'dark') => ({
+  glowColor: theme === 'dark' ? "132, 0, 255" : "132, 0, 255", // Purple for both, but different intensities
+  glowIntensity: theme === 'dark' ? 1 : 0.6, // More subtle in light mode
+  backgroundColor: theme === 'dark' ? "#060010" : "hsl(var(--card))",
+  borderColor: theme === 'dark' ? "#392e4e" : "hsl(var(--border))",
+  textColor: theme === 'dark' ? "white" : "hsl(var(--foreground))",
+});
 
 // MagicBento helper functions
 const createParticleElement = (
   x: number,
   y: number,
-  color: string = DEFAULT_GLOW_COLOR
+  color: string,
+  intensity: number = 1
 ): HTMLDivElement => {
   const el = document.createElement("div");
   el.className = "particle";
@@ -37,8 +47,8 @@ const createParticleElement = (
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: rgba(${color}, 1);
-    box-shadow: 0 0 6px rgba(${color}, 0.6);
+    background: rgba(${color}, ${intensity});
+    box-shadow: 0 0 6px rgba(${color}, ${intensity * 0.6});
     pointer-events: none;
     z-index: 100;
     left: ${x}px;
@@ -85,6 +95,7 @@ const ParticleCard: React.FC<{
   style?: React.CSSProperties;
   particleCount?: number;
   glowColor?: string;
+  glowIntensity?: number;
   enableTilt?: boolean;
   clickEffect?: boolean;
   enableMagnetism?: boolean;
@@ -94,7 +105,8 @@ const ParticleCard: React.FC<{
   disableAnimations = false,
   style,
   particleCount = DEFAULT_PARTICLE_COUNT,
-  glowColor = DEFAULT_GLOW_COLOR,
+  glowColor = "132, 0, 255",
+  glowIntensity = 1,
   enableTilt = true,
   clickEffect = false,
   enableMagnetism = false,
@@ -115,11 +127,12 @@ const ParticleCard: React.FC<{
       createParticleElement(
         Math.random() * width,
         Math.random() * height,
-        glowColor
+        glowColor,
+        glowIntensity
       )
     );
     particlesInitialized.current = true;
-  }, [particleCount, glowColor]);
+  }, [particleCount, glowColor, glowIntensity]);
 
   const clearAllParticles = useCallback(() => {
     timeoutsRef.current.forEach(clearTimeout);
@@ -282,7 +295,7 @@ const ParticleCard: React.FC<{
         width: ${maxDistance * 2}px;
         height: ${maxDistance * 2}px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(${glowColor}, 0.4) 0%, rgba(${glowColor}, 0.2) 30%, transparent 70%);
+        background: radial-gradient(circle, rgba(${glowColor}, ${0.4 * glowIntensity}) 0%, rgba(${glowColor}, ${0.2 * glowIntensity}) 30%, transparent 70%);
         left: ${x - maxDistance}px;
         top: ${y - maxDistance}px;
         pointer-events: none;
@@ -328,6 +341,7 @@ const ParticleCard: React.FC<{
     enableMagnetism,
     clickEffect,
     glowColor,
+    glowIntensity,
   ]);
 
   return (
@@ -348,12 +362,14 @@ const GlobalSpotlight: React.FC<{
   enabled?: boolean;
   spotlightRadius?: number;
   glowColor?: string;
+  glowIntensity?: number;
 }> = ({
   gridRef,
   disableAnimations = false,
   enabled = true,
   spotlightRadius = DEFAULT_SPOTLIGHT_RADIUS,
-  glowColor = DEFAULT_GLOW_COLOR,
+  glowColor = "132, 0, 255",
+  glowIntensity = 1,
 }) => {
   const spotlightRef = useRef<HTMLDivElement | null>(null);
   const isInsideSection = useRef(false);
@@ -370,11 +386,11 @@ const GlobalSpotlight: React.FC<{
       border-radius: 50%;
       pointer-events: none;
       background: radial-gradient(circle,
-        rgba(${glowColor}, 0.15) 0%,
-        rgba(${glowColor}, 0.08) 15%,
-        rgba(${glowColor}, 0.04) 25%,
-        rgba(${glowColor}, 0.02) 40%,
-        rgba(${glowColor}, 0.01) 65%,
+        rgba(${glowColor}, ${0.15 * glowIntensity}) 0%,
+        rgba(${glowColor}, ${0.08 * glowIntensity}) 15%,
+        rgba(${glowColor}, ${0.04 * glowIntensity}) 25%,
+        rgba(${glowColor}, ${0.02 * glowIntensity}) 40%,
+        rgba(${glowColor}, ${0.01 * glowIntensity}) 65%,
         transparent 70%
       );
       z-index: 200;
@@ -488,13 +504,14 @@ const GlobalSpotlight: React.FC<{
       document.removeEventListener("mouseleave", handleMouseLeave);
       spotlightRef.current?.parentNode?.removeChild(spotlightRef.current);
     };
-  }, [gridRef, disableAnimations, enabled, spotlightRadius, glowColor]);
+  }, [gridRef, disableAnimations, enabled, spotlightRadius, glowColor, glowIntensity]);
 
   return null;
 };
 
 export default function Dashboard() {
   const { user, isLoading } = useUser();
+  const { theme } = useTheme();
   const statsRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const socialRef = useRef<HTMLDivElement>(null);
@@ -503,7 +520,7 @@ export default function Dashboard() {
   
   // MagicBento settings
   const [isMobile, setIsMobile] = useState(false);
-  const glowColor = DEFAULT_GLOW_COLOR;
+  const themeColors = getThemeColors(theme);
   const shouldDisableAnimations = isMobile;
 
   // Mobile detection
@@ -578,13 +595,13 @@ export default function Dashboard() {
             --glow-y: 50%;
             --glow-intensity: 0;
             --glow-radius: 200px;
-            --glow-color: ${glowColor};
-            --border-color: #392e4e;
-            --background-dark: #060010;
-            --white: hsl(0, 0%, 100%);
-            --purple-primary: rgba(132, 0, 255, 1);
-            --purple-glow: rgba(132, 0, 255, 0.2);
-            --purple-border: rgba(132, 0, 255, 0.8);
+            --glow-color: ${themeColors.glowColor};
+            --border-color: ${themeColors.borderColor};
+            --background-card: ${themeColors.backgroundColor};
+            --text-color: ${themeColors.textColor};
+            --purple-primary: rgba(${themeColors.glowColor}, ${themeColors.glowIntensity});
+            --purple-glow: rgba(${themeColors.glowColor}, ${themeColors.glowIntensity * 0.2});
+            --purple-border: rgba(${themeColors.glowColor}, ${themeColors.glowIntensity * 0.8});
           }
           
           .magic-card--border-glow::after {
@@ -593,8 +610,8 @@ export default function Dashboard() {
             inset: 0;
             padding: 6px;
             background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.8)) 0%,
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.4)) 30%,
+                rgba(${themeColors.glowColor}, calc(var(--glow-intensity) * ${themeColors.glowIntensity} * 0.8)) 0%,
+                rgba(${themeColors.glowColor}, calc(var(--glow-intensity) * ${themeColors.glowIntensity} * 0.4)) 30%,
                 transparent 60%);
             border-radius: inherit;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -611,7 +628,7 @@ export default function Dashboard() {
           }
           
           .magic-card--border-glow:hover {
-            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px rgba(${glowColor}, 0.2);
+            box-shadow: 0 4px 20px ${theme === 'dark' ? 'rgba(46, 24, 78, 0.4)' : 'rgba(0, 0, 0, 0.1)'}, 0 0 30px rgba(${themeColors.glowColor}, ${themeColors.glowIntensity * 0.2});
           }
           
           .particle::before {
@@ -621,7 +638,7 @@ export default function Dashboard() {
             left: -2px;
             right: -2px;
             bottom: -2px;
-            background: rgba(${glowColor}, 0.2);
+            background: rgba(${themeColors.glowColor}, ${themeColors.glowIntensity * 0.2});
             border-radius: 50%;
             z-index: -1;
           }
@@ -651,7 +668,8 @@ export default function Dashboard() {
         disableAnimations={shouldDisableAnimations}
         enabled={true}
         spotlightRadius={DEFAULT_SPOTLIGHT_RADIUS}
-        glowColor={glowColor}
+        glowColor={themeColors.glowColor}
+        glowIntensity={themeColors.glowIntensity}
       />
 
       <div className="space-y-4">
@@ -689,11 +707,8 @@ export default function Dashboard() {
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {/* Coding Time Card */}
             <ParticleCard
-              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border"
               style={{
-                backgroundColor: "#060010",
-                borderColor: "#392e4e",
-                color: "white",
                 "--glow-x": "50%",
                 "--glow-y": "50%",
                 "--glow-intensity": "0",
@@ -701,18 +716,19 @@ export default function Dashboard() {
               } as React.CSSProperties}
               disableAnimations={shouldDisableAnimations}
               particleCount={DEFAULT_PARTICLE_COUNT}
-              glowColor={glowColor}
+              glowColor={themeColors.glowColor}
+              glowIntensity={themeColors.glowIntensity}
               enableTilt={true}
               clickEffect={true}
               enableMagnetism={true}
             >
-              <div className="card__header flex justify-between gap-3 relative text-white">
+              <div className="card__header flex justify-between gap-3 relative">
                 <span className="card__label text-sm flex items-center gap-2">
                   <ClockIcon className="h-4 w-4" />
                   Coding Time
                 </span>
               </div>
-              <div className="card__content flex flex-col relative text-white">
+              <div className="card__content flex flex-col relative">
                 <h3 className="card__title font-normal text-2xl m-0 mb-1">
                   {user.stats.totalCodingTime}
                 </h3>
@@ -724,11 +740,8 @@ export default function Dashboard() {
 
             {/* Streak Card */}
             <ParticleCard
-              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border"
               style={{
-                backgroundColor: "#060010",
-                borderColor: "#392e4e",
-                color: "white",
                 "--glow-x": "50%",
                 "--glow-y": "50%",
                 "--glow-intensity": "0",
@@ -736,18 +749,19 @@ export default function Dashboard() {
               } as React.CSSProperties}
               disableAnimations={shouldDisableAnimations}
               particleCount={DEFAULT_PARTICLE_COUNT}
-              glowColor={glowColor}
+              glowColor={themeColors.glowColor}
+              glowIntensity={themeColors.glowIntensity}
               enableTilt={true}
               clickEffect={true}
               enableMagnetism={true}
             >
-              <div className="card__header flex justify-between gap-3 relative text-white">
+              <div className="card__header flex justify-between gap-3 relative">
                 <span className="card__label text-sm flex items-center gap-2">
                   <TrophyIcon className="h-4 w-4" />
                   Streak
                 </span>
               </div>
-              <div className="card__content flex flex-col relative text-white">
+              <div className="card__content flex flex-col relative">
                 <h3 className="card__title font-normal text-2xl m-0 mb-1">
                   {user.stats.currentStreak} days
                 </h3>
@@ -759,11 +773,8 @@ export default function Dashboard() {
 
             {/* Performance Card */}
             <ParticleCard
-              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border"
               style={{
-                backgroundColor: "#060010",
-                borderColor: "#392e4e",
-                color: "white",
                 "--glow-x": "50%",
                 "--glow-y": "50%",
                 "--glow-intensity": "0",
@@ -771,18 +782,19 @@ export default function Dashboard() {
               } as React.CSSProperties}
               disableAnimations={shouldDisableAnimations}
               particleCount={DEFAULT_PARTICLE_COUNT}
-              glowColor={glowColor}
+              glowColor={themeColors.glowColor}
+              glowIntensity={themeColors.glowIntensity}
               enableTilt={true}
               clickEffect={true}
               enableMagnetism={true}
             >
-              <div className="card__header flex justify-between gap-3 relative text-white">
+              <div className="card__header flex justify-between gap-3 relative">
                 <span className="card__label text-sm flex items-center gap-2">
                   <ActivityIcon className="h-4 w-4" />
                   Performance
                 </span>
               </div>
-              <div className="card__content flex flex-col relative text-white">
+              <div className="card__content flex flex-col relative">
                 <h3 className="card__title font-normal text-2xl m-0 mb-1">
                   85%
                 </h3>
@@ -794,11 +806,8 @@ export default function Dashboard() {
 
             {/* Cat Status Card */}
             <ParticleCard
-              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+              className="magic-card magic-card--border-glow flex flex-col justify-between relative aspect-[4/3] min-h-[160px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border"
               style={{
-                backgroundColor: "#060010",
-                borderColor: "#392e4e",
-                color: "white",
                 "--glow-x": "50%",
                 "--glow-y": "50%",
                 "--glow-intensity": "0",
@@ -806,18 +815,19 @@ export default function Dashboard() {
               } as React.CSSProperties}
               disableAnimations={shouldDisableAnimations}
               particleCount={DEFAULT_PARTICLE_COUNT}
-              glowColor={glowColor}
+              glowColor={themeColors.glowColor}
+              glowIntensity={themeColors.glowIntensity}
               enableTilt={true}
               clickEffect={true}
               enableMagnetism={true}
             >
-              <div className="card__header flex justify-between gap-3 relative text-white">
+              <div className="card__header flex justify-between gap-3 relative">
                 <span className="card__label text-sm flex items-center gap-2">
                   <CatIcon className="h-4 w-4" />
                   Cat Status
                 </span>
               </div>
-              <div className="card__content flex flex-col relative text-white text-center">
+              <div className="card__content flex flex-col relative text-center">
                 <div className="text-3xl mb-2">😸</div>
                 <h3 className="card__title font-normal text-lg m-0 mb-1">Happy</h3>
                 <p className="card__description text-xs leading-4 opacity-90">
@@ -833,11 +843,8 @@ export default function Dashboard() {
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
             {/* Recent Projects Card - Larger */}
             <ParticleCard
-              className="magic-card magic-card--border-glow flex flex-col justify-between relative min-h-[280px] w-full max-w-full p-6 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 lg:col-span-2"
+              className="magic-card magic-card--border-glow flex flex-col justify-between relative min-h-[280px] w-full max-w-full p-6 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 lg:col-span-2 bg-card text-card-foreground border-border"
               style={{
-                backgroundColor: "#060010",
-                borderColor: "#392e4e",
-                color: "white",
                 "--glow-x": "50%",
                 "--glow-y": "50%",
                 "--glow-intensity": "0",
@@ -845,12 +852,13 @@ export default function Dashboard() {
               } as React.CSSProperties}
               disableAnimations={shouldDisableAnimations}
               particleCount={DEFAULT_PARTICLE_COUNT}
-              glowColor={glowColor}
+              glowColor={themeColors.glowColor}
+              glowIntensity={themeColors.glowIntensity}
               enableTilt={true}
               clickEffect={true}
               enableMagnetism={true}
             >
-              <div className="card__header flex justify-between gap-3 relative text-white mb-4">
+              <div className="card__header flex justify-between gap-3 relative mb-4">
                 <span className="card__label text-lg flex items-center gap-2">
                   <FolderIcon className="h-5 w-5" />
                   Recent Projects
@@ -858,26 +866,26 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-xs text-white/70 hover:text-white hover:bg-white/10"
+                  className="text-xs opacity-70 hover:opacity-100 hover:bg-muted"
                   onClick={() => navigate('/app/projects')}
                 >
                   View All
                 </Button>
               </div>
-              <div className="card__content flex flex-col relative text-white flex-1">
+              <div className="card__content flex flex-col relative flex-1">
                 <div ref={projectsRef} className="space-y-4">
                   {user.recentProjects.slice(0, 4).map((project, index) => (
-                    <div key={index} className="project-item flex items-center gap-4 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/20">
-                        <FolderIcon className="h-5 w-5 text-purple-400" />
+                    <div key={index} className="project-item flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
+                        <FolderIcon className="h-5 w-5 text-primary" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-sm font-medium">{project.name}</p>
-                          <p className="text-xs text-white/70">{project.time}</p>
+                          <p className="text-xs opacity-70">{project.time}</p>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-white/10">
-                          <div className="progress-bar h-full w-0 rounded-full bg-purple-500"></div>
+                        <div className="h-2 w-full rounded-full bg-muted">
+                          <div className="progress-bar h-full w-0 rounded-full bg-primary"></div>
                         </div>
                       </div>
                     </div>
@@ -890,11 +898,8 @@ export default function Dashboard() {
             <div className="space-y-4">
               {/* Language Distribution Card */}
               <ParticleCard
-                className="magic-card magic-card--border-glow flex flex-col justify-between relative min-h-[180px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+                className="magic-card magic-card--border-glow flex flex-col justify-between relative min-h-[180px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border"
                 style={{
-                  backgroundColor: "#060010",
-                  borderColor: "#392e4e",
-                  color: "white",
                   "--glow-x": "50%",
                   "--glow-y": "50%",
                   "--glow-intensity": "0",
@@ -902,26 +907,27 @@ export default function Dashboard() {
                 } as React.CSSProperties}
                 disableAnimations={shouldDisableAnimations}
                 particleCount={DEFAULT_PARTICLE_COUNT}
-                glowColor={glowColor}
+                glowColor={themeColors.glowColor}
+                glowIntensity={themeColors.glowIntensity}
                 enableTilt={true}
                 clickEffect={true}
                 enableMagnetism={true}
               >
-                <div className="card__header flex justify-between gap-3 relative text-white mb-3">
+                <div className="card__header flex justify-between gap-3 relative mb-3">
                   <span className="card__label text-base flex items-center gap-2">
                     <CodeIcon className="h-4 w-4" />
                     Languages
                   </span>
                 </div>
-                <div className="card__content flex flex-col relative text-white">
+                <div className="card__content flex flex-col relative">
                   <div className="space-y-3">
                     {user.languageDistribution.slice(0, 3).map((lang, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <span className="text-sm">{lang.name}</span>
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-purple-500 rounded-full transition-all duration-1000"
+                              className="h-full bg-primary rounded-full transition-all duration-1000"
                               style={{ width: `${lang.percentage}%` }}
                             />
                           </div>
@@ -935,11 +941,8 @@ export default function Dashboard() {
 
               {/* Quick Actions Card */}
               <ParticleCard
-                className="magic-card magic-card--border-glow flex flex-col justify-between relative min-h-[180px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+                className="magic-card magic-card--border-glow flex flex-col justify-between relative min-h-[180px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border"
                 style={{
-                  backgroundColor: "#060010",
-                  borderColor: "#392e4e",
-                  color: "white",
                   "--glow-x": "50%",
                   "--glow-y": "50%",
                   "--glow-intensity": "0",
@@ -947,23 +950,24 @@ export default function Dashboard() {
                 } as React.CSSProperties}
                 disableAnimations={shouldDisableAnimations}
                 particleCount={DEFAULT_PARTICLE_COUNT}
-                glowColor={glowColor}
+                glowColor={themeColors.glowColor}
+                glowIntensity={themeColors.glowIntensity}
                 enableTilt={true}
                 clickEffect={true}
                 enableMagnetism={true}
               >
-                <div className="card__header flex justify-between gap-3 relative text-white mb-3">
+                <div className="card__header flex justify-between gap-3 relative mb-3">
                   <span className="card__label text-base flex items-center gap-2">
                     <ZapIcon className="h-4 w-4" />
                     Quick Actions
                   </span>
                 </div>
-                <div className="card__content flex flex-col relative text-white">
+                <div className="card__content flex flex-col relative">
                   <div className="grid grid-cols-1 gap-3">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-10 text-sm bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start" 
+                      className="h-10 text-sm justify-start" 
                       onClick={() => navigate('/app/tracker')}
                     >
                       <ClockIcon className="h-4 w-4 mr-2" />
@@ -972,7 +976,7 @@ export default function Dashboard() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-10 text-sm bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start" 
+                      className="h-10 text-sm justify-start" 
                       onClick={() => navigate('/app/projects')}
                     >
                       <FolderIcon className="h-4 w-4 mr-2" />
@@ -981,7 +985,7 @@ export default function Dashboard() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-10 text-sm bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start" 
+                      className="h-10 text-sm justify-start" 
                       onClick={() => navigate('/app/stats')}
                     >
                       <BarChart3Icon className="h-4 w-4 mr-2" />

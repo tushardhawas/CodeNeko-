@@ -12,7 +12,7 @@ const ShinyText: React.FC<ShinyTextProps> = ({ text, disabled = false, speed = 5
 
     if (disabled) {
         return (
-            <span className={`text-white/70 ${className}`}>
+            <span className={`opacity-70 ${className}`}>
                 {text}
             </span>
         );
@@ -20,13 +20,9 @@ const ShinyText: React.FC<ShinyTextProps> = ({ text, disabled = false, speed = 5
 
     return (
         <span
-            className={`inline-block ${className}`}
+            className={`inline-block bg-gradient-to-r from-foreground/70 via-foreground to-foreground/70 bg-clip-text text-transparent ${className}`}
             style={{
-                background: 'linear-gradient(120deg, rgba(255, 255, 255, 0.7) 40%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0.7) 60%)',
                 backgroundSize: '200% 100%',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
                 animation: `shine ${animationDuration} linear infinite`,
             }}
         >

@@ -1,18 +1,28 @@
-import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { gsap } from 'gsap';
+import { useMemo, useRef, useCallback, useEffect, useState } from "react";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/theme-provider";
+import { gsap } from "gsap";
 
 // MagicBento constants
 const DEFAULT_PARTICLE_COUNT = 8;
-const DEFAULT_GLOW_COLOR = "132, 0, 255";
 const MOBILE_BREAKPOINT = 768;
+
+// Theme-aware glow colors
+const getThemeColors = (theme: "light" | "dark") => ({
+  glowColor: "132, 0, 255", // Purple for both themes
+  glowIntensity: theme === "dark" ? 1 : 0.6, // More subtle in light mode
+  backgroundColor: theme === "dark" ? "#060010" : "hsl(var(--card))",
+  borderColor: theme === "dark" ? "#392e4e" : "hsl(var(--border))",
+  textColor: theme === "dark" ? "white" : "hsl(var(--foreground))",
+});
 
 // MagicBento helper functions
 const createParticleElement = (
   x: number,
   y: number,
-  color: string = DEFAULT_GLOW_COLOR
+  color: string,
+  intensity: number = 1
 ): HTMLDivElement => {
   const el = document.createElement("div");
   el.className = "particle";
@@ -21,8 +31,8 @@ const createParticleElement = (
     width: 3px;
     height: 3px;
     border-radius: 50%;
-    background: rgba(${color}, 1);
-    box-shadow: 0 0 4px rgba(${color}, 0.6);
+    background: rgba(${color}, ${intensity});
+    box-shadow: 0 0 4px rgba(${color}, ${intensity * 0.6});
     pointer-events: none;
     z-index: 100;
     left: ${x}px;
@@ -46,12 +56,17 @@ const generateData = (): Day[] => {
   const start = new Date(today);
   start.setFullYear(start.getFullYear() - 1);
   const days: Day[] = [];
+
   for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
-    const hasWorked = Math.random() < 0.3; // ~30% days with activity
-    days.push({ date: new Date(d), intensity: hasWorked ? 1 : 0 });
+    days.push({
+      date: new Date(d),
+      intensity: Math.random() < 0.3 ? 1 : 0,
+    });
   }
+
   return days;
 };
+
 
 // ParticleCard component for MagicBento effects
 const ParticleCard: React.FC<{
@@ -61,6 +76,7 @@ const ParticleCard: React.FC<{
   style?: React.CSSProperties;
   particleCount?: number;
   glowColor?: string;
+  glowIntensity?: number;
   enableTilt?: boolean;
   clickEffect?: boolean;
   enableMagnetism?: boolean;
@@ -70,7 +86,8 @@ const ParticleCard: React.FC<{
   disableAnimations = false,
   style,
   particleCount = DEFAULT_PARTICLE_COUNT,
-  glowColor = DEFAULT_GLOW_COLOR,
+  glowColor = "132, 0, 255",
+  glowIntensity = 1,
   enableTilt = true,
   clickEffect = false,
   enableMagnetism = false,
@@ -91,11 +108,12 @@ const ParticleCard: React.FC<{
       createParticleElement(
         Math.random() * width,
         Math.random() * height,
-        glowColor
+        glowColor,
+        glowIntensity
       )
     );
     particlesInitialized.current = true;
-  }, [particleCount, glowColor]);
+  }, [particleCount, glowColor, glowIntensity]);
 
   const clearAllParticles = useCallback(() => {
     timeoutsRef.current.forEach(clearTimeout);
@@ -258,7 +276,9 @@ const ParticleCard: React.FC<{
         width: ${maxDistance * 2}px;
         height: ${maxDistance * 2}px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(${glowColor}, 0.3) 0%, rgba(${glowColor}, 0.1) 30%, transparent 70%);
+        background: radial-gradient(circle, rgba(${glowColor}, ${
+        0.3 * glowIntensity
+      }) 0%, rgba(${glowColor}, ${0.1 * glowIntensity}) 30%, transparent 70%);
         left: ${x - maxDistance}px;
         top: ${y - maxDistance}px;
         pointer-events: none;
@@ -304,13 +324,14 @@ const ParticleCard: React.FC<{
     enableMagnetism,
     clickEffect,
     glowColor,
+    glowIntensity,
   ]);
 
   return (
     <div
       ref={cardRef}
-      className={`${className} relative overflow-hidden`}
-      style={{ ...style, position: "relative", overflow: "hidden" }}
+      className={`${className} relative`}
+      style={{ ...style, position: "relative" }}
     >
       {children}
     </div>
@@ -318,9 +339,10 @@ const ParticleCard: React.FC<{
 };
 
 export function StreakCalendar({ className }: StreakCalendarProps) {
+  const { theme } = useTheme();
   const data = useMemo(generateData, []);
   const [isMobile, setIsMobile] = useState(false);
-  const glowColor = DEFAULT_GLOW_COLOR;
+  const themeColors = getThemeColors(theme);
   const shouldDisableAnimations = isMobile;
 
   // Mobile detection
@@ -334,31 +356,72 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // group into weeks
-  const weeks: Day[][] = [];
-  data.forEach((day) => {
-    const weekIdx = Math.floor((day.date.getTime() - data[0].date.getTime()) / (1000 * 60 * 60 * 24 * 7));
-    if (!weeks[weekIdx]) weeks[weekIdx] = [];
-    weeks[weekIdx].push(day);
-  });
+  const getMonthLabelWidth = (weeks: number, block = 0.75, gap = 0.375) =>
+  `calc(${weeks} * ${block}rem + ${(weeks - 1)} * ${gap}rem)`;
 
-  // compute month label positions at first-of-month
-  const monthLabels: { label: string; col: number }[] = [];
-  let lastMonth = -1;
-  weeks.forEach((week, i) => {
-    const firstOfMonth = week.find((d) => d.date.getDate() === 1);
-    if (firstOfMonth) {
-      const m = firstOfMonth.date.getMonth();
-      if (m !== lastMonth) {
-        lastMonth = m;
-        monthLabels.push({ label: firstOfMonth.date.toLocaleString('en-US', { month: 'short' }), col: i + 1 });
+  // Group data by month, each month as a group of week-columns, never split a month
+  const createCalendarGrid = () => {
+    if (data.length === 0) return { months: [] };
+
+    // Group all days by year and month (never split a month)
+    const monthMap = new Map<string, Day[]>();
+    data.forEach((day) => {
+      const key = `${day.date.getFullYear()}-${day.date.getMonth()}`;
+      if (!monthMap.has(key)) monthMap.set(key, []);
+      monthMap.get(key)!.push(day);
+    });
+
+    // Sort months chronologically and keep only the last 12 unique months
+    const sortedKeys = Array.from(monthMap.keys()).sort((a, b) => {
+      const [ay, am] = a.split("-").map(Number);
+      const [by, bm] = b.split("-").map(Number);
+      return ay !== by ? ay - by : am - bm;
+    });
+
+    // Only keep the last 12 unique months
+    const last12Keys = sortedKeys.slice(-12);
+
+    const months = last12Keys.map((key) => {
+      const days = monthMap.get(key)!;
+      const firstDate = days[0].date;
+      const lastDate = days[days.length - 1].date;
+      // Find the first Sunday before or on the 1st
+      const start = new Date(firstDate);
+      start.setDate(firstDate.getDate() - firstDate.getDay());
+      // Find the last Saturday after or on the last day
+      const end = new Date(lastDate);
+      end.setDate(lastDate.getDate() + (6 - lastDate.getDay()));
+      const weeks: (Day | null)[][] = [];
+      let current = new Date(start);
+      
+      while (current <= end) {
+        const week: (Day | null)[] = [];
+        for (let d = 0; d < 7; d++) {
+          const found = days.find(
+            (day) => day.date.toDateString() === current.toDateString()
+          );
+          week.push(found ? found : null);
+          current.setDate(current.getDate() + 1);
+        }
+        weeks.push(week);
       }
-    }
-  });
+      return {
+        label: firstDate.toLocaleString("en-US", { month: "short" }),
+        year: firstDate.getFullYear(),
+        weeks,
+        firstDayOfMonth: firstDate.getDay(),
+        lastDayOfMonth: lastDate.getDay(),
+      };
+    });
+
+    return { months };
+  };
+
+  const { months } = useMemo(createCalendarGrid, [data]);
 
   const total = data.filter((d) => d.intensity > 0).length;
   const streak = useMemo(() => {
-    let s = 0;
+    let s = 7;
     for (let i = data.length - 1; i >= 0; i--) {
       if (data[i].intensity > 0) s++;
       else break;
@@ -375,13 +438,19 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
             --glow-y: 50%;
             --glow-intensity: 0;
             --glow-radius: 200px;
-            --glow-color: ${glowColor};
-            --border-color: #392e4e;
-            --background-dark: #060010;
-            --white: hsl(0, 0%, 100%);
-            --purple-primary: rgba(132, 0, 255, 1);
-            --purple-glow: rgba(132, 0, 255, 0.2);
-            --purple-border: rgba(132, 0, 255, 0.8);
+            --glow-color: ${themeColors.glowColor};
+            --border-color: ${themeColors.borderColor};
+            --background-card: ${themeColors.backgroundColor};
+            --text-color: ${themeColors.textColor};
+            --purple-primary: rgba(${themeColors.glowColor}, ${
+          themeColors.glowIntensity
+        });
+            --purple-glow: rgba(${themeColors.glowColor}, ${
+          themeColors.glowIntensity * 0.2
+        });
+            --purple-border: rgba(${themeColors.glowColor}, ${
+          themeColors.glowIntensity * 0.8
+        });
           }
           
           .streak-calendar-card--border-glow::after {
@@ -390,8 +459,12 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
             inset: 0;
             padding: 6px;
             background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.6)) 0%,
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.3)) 30%,
+                rgba(${themeColors.glowColor}, calc(var(--glow-intensity) * ${
+          themeColors.glowIntensity
+        } * 0.6)) 0%,
+                rgba(${themeColors.glowColor}, calc(var(--glow-intensity) * ${
+          themeColors.glowIntensity
+        } * 0.3)) 30%,
                 transparent 60%);
             border-radius: inherit;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -408,47 +481,101 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
           }
           
           .streak-calendar-card--border-glow:hover {
-            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px rgba(${glowColor}, 0.2);
+            box-shadow: 0 4px 20px ${
+              theme === "dark" ? "rgba(46, 24, 78, 0.4)" : "rgba(0, 0, 0, 0.15)"
+            }, 0 0 30px rgba(${themeColors.glowColor}, ${
+          themeColors.glowIntensity * 0.2
+        });
           }
           
           .calendar-day {
             transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
           }
           
           .calendar-day:hover {
             transform: scale(1.2);
-            box-shadow: 0 0 8px rgba(${glowColor}, 0.6);
+            box-shadow: 0 0 8px rgba(${themeColors.glowColor}, ${
+          themeColors.glowIntensity * 0.6
+        });
+            z-index: 10;
           }
           
           .calendar-day--active {
-            background: linear-gradient(135deg, rgba(${glowColor}, 0.8), rgba(${glowColor}, 0.6));
-            box-shadow: 0 0 4px rgba(${glowColor}, 0.4);
+            background: linear-gradient(135deg, rgba(${
+              themeColors.glowColor
+            }, ${themeColors.glowIntensity * 0.8}), rgba(${
+          themeColors.glowColor
+        }, ${themeColors.glowIntensity * 0.6}));
+            box-shadow: 0 0 4px rgba(${themeColors.glowColor}, ${
+          themeColors.glowIntensity * 0.4
+        });
           }
           
           .calendar-day--inactive {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: ${
+              theme === "dark"
+                ? "rgba(255, 255, 255, 0.1)"
+                : "rgba(0, 0, 0, 0.1)"
+            };
+            border: 1px solid ${
+              theme === "dark"
+                ? "rgba(255, 255, 255, 0.1)"
+                : "rgba(0, 0, 0, 0.1)"
+            };
+          }
+          
+          /* Ensure proper overflow handling */
+          .overflow-x-auto {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(${themeColors.glowColor}, 0.3) transparent;
+          }
+          
+          .overflow-x-auto::-webkit-scrollbar {
+            height: 4px;
+          }
+          
+          .overflow-x-auto::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: rgba(${themeColors.glowColor}, 0.3);
+            border-radius: 2px;
+          }
+          
+          .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: rgba(${themeColors.glowColor}, 0.5);
+          }
+
+          /* Add .calendar-day--today CSS for fallback/outline */
+          .calendar-day--today {
+            outline: 2px solid #fff;
+            outline-offset: 1px;
+            position: relative;
           }
         `}
       </style>
 
       <ParticleCard
         className={cn(
-          'streak-calendar-card streak-calendar-card--border-glow relative w-full p-6 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5',
+          "streak-calendar-card streak-calendar-card--border-glow relative w-full p-6 rounded-[20px] border border-solid font-light transition-all duration-300 ease-in-out hover:-translate-y-0.5 bg-card text-card-foreground border-border",
           className
         )}
-        style={{
-          backgroundColor: "#060010",
-          borderColor: "#392e4e",
-          color: "white",
-          "--glow-x": "50%",
-          "--glow-y": "50%",
-          "--glow-intensity": "0",
-          "--glow-radius": "200px",
-        } as React.CSSProperties}
+        style={
+          {
+            "--glow-x": "50%",
+            "--glow-y": "50%",
+            "--glow-intensity": "0",
+            "--glow-radius": "200px",
+            overflow: "visible",
+          } as React.CSSProperties
+        }
         disableAnimations={shouldDisableAnimations}
         particleCount={DEFAULT_PARTICLE_COUNT}
-        glowColor={glowColor}
+        glowColor={themeColors.glowColor}
+        glowIntensity={themeColors.glowIntensity}
         enableTilt={true}
         clickEffect={true}
         enableMagnetism={true}
@@ -456,72 +583,139 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
         <div className="mb-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-purple-400" />
-              <h3 className="text-lg font-medium text-white">Code Activity</h3>
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-medium">Code Activity</h3>
             </div>
-            <div className="text-sm text-white/70">
-              {total} days · {streak} streak
+            <div className="text-sm opacity-70">
+              {total} days ·{streak} streak {streak >= 7 && <span className="animate-pulse text-yellow-400">🔥</span>}
             </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          {/* Month labels */}
-          <div className="flex justify-start mb-3 pl-4">
-            {monthLabels.map(({ label, col }, idx) => (
-              <div
-                key={idx}
-                className="text-xs text-white/60 font-medium"
-                style={{ 
-                  marginLeft: idx === 0 ? '0' : `${(col - (monthLabels[idx-1]?.col || 0)) * 16 - 24}px`,
-                  minWidth: '40px'
-                }}
-              >
-                {label}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar grid */}
-          <div className="grid grid-rows-7 grid-flow-col gap-1.5 justify-start">
-            {/* Day labels */}
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">S</div>
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">M</div>
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">T</div>
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">W</div>
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">T</div>
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">F</div>
-            <div className="text-xs text-white/50 flex items-center justify-center w-3 h-3">S</div>
-
-            {weeks.map((week, w) => {
-              // Check if this week starts a new month
-              const isNewMonth = week.some(day => day.date.getDate() === 1);
-              const marginLeft = isNewMonth && w > 0 ? '8px' : '0';
-              
-              return week.map((day, d) => (
+        <div className="calendar-container">
+          <div className="overflow-x-auto pb-2">
+            {/* Month labels - center above each month block, perfectly aligned with grid */}
+            <div className="flex mb-3 items-end min-w-max">
+              {/* Day labels spacer: match width and gap of day labels column */}
+              <div className="w-[18px] min-w-[18px] flex-shrink-0"></div>
+              {months.map((month, idx) => (
                 <div
-                  key={`${w}-${d}`}
-                  className={cn(
-                    'calendar-day w-3 h-3 rounded-sm cursor-pointer',
-                    day.intensity > 0 ? 'calendar-day--active' : 'calendar-day--inactive'
-                  )}
-                  style={{ 
-                    gridColumnStart: w + 2, 
-                    gridRowStart: (day.date.getDay()) + 1,
-                    marginLeft: d === 0 ? marginLeft : '0'
+                  key={`${month.label}-${month.year}`}
+                  className="flex justify-center flex-shrink-0"
+                  style={{
+                    width: getMonthLabelWidth(month.weeks.length), // precise pixel math
+                    marginLeft: idx > 0 ? "16px" : "0",
                   }}
-                  title={
-                    day.intensity
-                      ? `${day.date.toLocaleDateString('en-US')}: 1 session`
-                      : `${day.date.toLocaleDateString('en-US')}: No activity`
-                  }
-                />
-              ));
-            })}
+                >
+                  <span className="text-xs  opacity-60 font-medium text-center truncate">
+                    {month.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar container with proper sizing */}
+            <div className="flex items-start min-w-max">
+              {/* Day labels */}
+              <div className="flex flex-col gap-1.5 pt-0 w-[18px] min-w-[18px] flex-shrink-0">
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  S
+                </div>
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  M
+                </div>
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  T
+                </div>
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  W
+                </div>
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  T
+                </div>
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  F
+                </div>
+                <div className="text-xs opacity-50 flex items-center justify-center w-3 h-3">
+                  S
+                </div>
+              </div>
+
+              {/* Calendar months as groups of week-columns */}
+              <div className="flex">
+                {months.map((month, monthIdx) => (
+                  <div
+                    key={`${month.label}-${month.year}`}
+                    className="flex gap-1.5 flex-shrink-0"
+                    style={{ marginLeft: monthIdx > 0 ? "16px" : "0" }}
+                  >
+                    {month.weeks.map((week, weekIdx) => (
+                      <div
+                        key={`${month.label}-${weekIdx}`}
+                        className="flex flex-col gap-1.5"
+                      >
+                        {week.map((day, dayIdx) => {
+                          // Highlight today
+                          const isToday = day && day.date.toDateString() === new Date().toDateString();
+                          return (
+                            <div
+                              key={`${month.label}-${weekIdx}-${dayIdx}`}
+                              className={cn(
+                                "w-3 h-3 rounded-sm flex-shrink-0",
+                                day
+                                  ? day.intensity > 0
+                                    ? "calendar-day calendar-day--active cursor-pointer"
+                                    : "calendar-day calendar-day--inactive cursor-pointer"
+                                  : "opacity-0",
+                                isToday && "ring-1 ring-white/60 calendar-day--today"
+                              )}
+                              title={
+                                day
+                                  ? day.intensity > 0
+                                    ? `${day.date.toLocaleDateString(
+                                        "en-US"
+                                      )}: 1 session`
+                                    : `${day.date.toLocaleDateString(
+                                        "en-US"
+                                      )}: No activity`
+                                  : undefined
+                              }
+                            >
+                              {/* Today dot overlay */}
+                              {isToday && (
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    left: "50%",
+                                    top: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                    width: "7px",
+                                    height: "7px",
+                                    borderRadius: "50%",
+                                    background: theme === "dark" ? "#fff" : `rgba(${themeColors.glowColor}, 1)` ,
+                                    boxShadow: theme === "dark"
+                                      ? `0 0 6px 2px rgba(${themeColors.glowColor}, 0.7)`
+                                      : `0 0 6px 2px rgba(${themeColors.glowColor}, 0.4)` ,
+                                    border: theme === "dark" ? "1.5px solid #fff" : `1.5px solid rgba(${themeColors.glowColor}, 1)` ,
+                                    zIndex: 20,
+                                    pointerEvents: "none",
+                                  }}
+                                  aria-label="Today"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-between mt-4 text-xs text-white/60">
+          <div className="flex items-center justify-between mt-4 text-xs opacity-60">
             <span>Less</span>
             <div className="flex items-center gap-1">
               <div className="calendar-day--inactive w-3 h-3 rounded-sm"></div>
